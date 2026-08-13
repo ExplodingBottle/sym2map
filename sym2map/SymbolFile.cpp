@@ -50,7 +50,9 @@ bool SymbolFile::ParseSymbolFile() {
 	uint64_t symFileSize = (symFileEnd - symFileBegin);
 	symFile.seekg(0, ios::beg);
 
-	READ_DATA(symbolFileSize, uint32_t);
+	READ_DATA(symbolFileSize, uint16_t);
+	READ_DATA(mapFlags, uint8_t);
+	symFile.seekg(1, ios::cur); // reserved
 	READ_DATA(entrySegmentNumber, uint16_t);
 	READ_DATA(symbolsInHeaderNumber, uint16_t);
 	READ_DATA(headerTotalSize, uint16_t);
@@ -88,7 +90,15 @@ bool SymbolFile::ParseSymbolFile() {
 
 	SegmentObject segmentZero = SegmentObject();
 	for (int symbolNumber = 0; symbolNumber < symbolsInHeaderNumber; symbolNumber++) {
-		READ_DATA(symbolAddress, uint16_t);
+		uint32_t symbolAddress;
+		if (mapFlags & 1) {
+			READ_DATA(addr, uint32_t);
+			symbolAddress = addr;
+		}
+		else {
+			READ_DATA(addr, uint16_t);
+			symbolAddress = addr;
+		}
 		const string symbolName = ReadLimitedString();
 		SymbolObject symbol = SymbolObject(symbolAddress, symbolName);
 		segmentZero.GetEditableSymbolsList().push_back(symbol);
@@ -112,15 +122,15 @@ bool SymbolFile::ParseSymbolFile() {
 		/* This was undocumented and has been found when generating a map file with mapsym.exe -t -l and */
 		/* noticing that the segment in which everything was broken was also the only 32-bit segment */
 		symFile.seekg(6, ios::cur);
-		READ_DATA(customSizeMark, uint8_t);
+		READ_DATA(segmentFlags, uint8_t);
 		symFile.seekg(5, ios::cur);
 		
 		const string segmentName = ReadLimitedString();
 		SegmentObject segment = SegmentObject(segmentNumber, segmentName);
-		cout << "Segment discovered: " << segmentName << "(" << (customSizeMark ? "32-bits" : "16-bits") << ") - " << symbolsInSegment << " symbols." << endl;
+		cout << "Segment discovered: " << segmentName << "(" << ((segmentFlags & 1) ? "32-bits" : "16-bits") << ") - " << symbolsInSegment << " symbols." << endl;
 		for (int symbolNumber = 0; symbolNumber < symbolsInSegment; symbolNumber++) {
 			uint32_t symbolAddress;
-			if (customSizeMark) {
+			if (segmentFlags & 1) {
 				symFile.read(reinterpret_cast<char*>(&symbolAddress), sizeof(uint32_t));
 			}
 			else {
