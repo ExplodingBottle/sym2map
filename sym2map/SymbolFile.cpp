@@ -131,12 +131,12 @@ bool SymbolFile::ParseSymbolFile() {
 		for (int symbolNumber = 0; symbolNumber < symbolsInSegment; symbolNumber++) {
 			uint32_t symbolAddress;
 			if (segmentFlags & 1) {
-				symFile.read(reinterpret_cast<char*>(&symbolAddress), sizeof(uint32_t));
+				READ_DATA(addr, uint32_t);
+				symbolAddress = addr;
 			}
 			else {
-				uint16_t symbAddr2;
-				symFile.read(reinterpret_cast<char*>(&symbAddr2), sizeof(uint16_t));
-				symbolAddress = symbAddr2;
+				READ_DATA(addr, uint16_t);
+				symbolAddress = addr;
 			}
 			const string symbolName = ReadLimitedString();
 			SymbolObject symbol = SymbolObject(symbolAddress, symbolName);
