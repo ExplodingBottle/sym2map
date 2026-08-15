@@ -25,7 +25,7 @@ static void usage() {
 
 int main(int argc, char* argv[]) {
 	cout << "sym2map debug file conversion tool version " << TEXT_FILE_VERSION << endl;
-	cout << "Copyright (c) 2025 ExplodingBottle" << endl;
+	cout << "Copyright (c) 2026 ExplodingBottle" << endl;
 	cout << "Released under the MIT License. Check LICENSE in the root of the repository." << endl << endl;
 
 	if (argc < 3 || argc > 4) {
