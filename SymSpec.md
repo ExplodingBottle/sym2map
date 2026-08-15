@@ -47,7 +47,9 @@ else:
 The file header as a quite simple structure. Here are the different values you can extract from it (values are all unsigned):
 |   Size     | Explanation                                                                             |
 |:----------:|:----------------------------------------------------------------------------------------|
-| 32 bits    | This value represents the size of the symbol file, either in bytes or in paragraphs.<br>__This value excludes itself from the count, so add four bytes to this value when comparing to the file size__|
+| 16 bits    | This value represents the size of the symbol file, either in bytes or in paragraphs.<br>__This value excludes itself and the next two bytes from the count, so add four bytes to this value when comparing to the file size__|
+| 8 bits     | This value informs us on the nature of the segment zero. We can assume that bit 0 is set if the segment is 32 bits and unset if in 16 bits |
+| 8 bits     | *Unknown (padding?)* |
 | 16 bits    | The number of the segment containing the entry point (but no address) |
 | 16 bits    | This value tells how much symbols you will find in the segment zero (it can just be 0) |
 | 16 bits    | This value tells in bytes the size of the header __including the 32 bits length__ and __all the content of the zero segment__<br>Basically, it goes from the beginning of the file to the start of the first segment |
@@ -62,7 +64,7 @@ Then comes the segment zero without any kind of padding. It is a sequence of the
 corresponds to the 16 bits value telling how much symbols will be found in segment zero:
 |   Size     | Explanation                                                                             |
 |:----------:|:----------------------------------------------------------------------------------------|
-| 16 bits    | The address of the symbol. In assembly this should be rather called offset as this values corresponds to n in 0000:nnnnnnnn |
+| 16/32 bits | The address of the symbol. In assembly this should be rather called offset as this values corresponds to n in 0000:nnnnnnnn<br>__If the segment is a 32 bits segment, then the size of this value is 32 bits. Else, the size of this value is 16 bits__ |
 | 8 bits     | Size in bytes of the symbol name that will come after. The size is the exact size, there is no null character  |
 | 8n bits    | The name of the symbol in ASCII (with n = the 8 bits value found above) |
 
@@ -78,7 +80,7 @@ communicated by the segment and not trying to continue to read.
 | 16 bits    | This tells the size in bytes of the segment.<br>__If the symbol file uses bytes and not paragraphs, this value is the address in bytes of the end of the segment__ |
 | 16 bits    | This tells the segment number n which corresponds in assembly to nnnn:aaaaaaaa where a is an arbitrary value |
 | 6*8 bits   | *Unknown* |
-| 8 bits     | This value informs us on the nature of the segment. We can assume that it is only non-null if the segment is 32 bits and null if in 16 bits |
+| 8 bits     | This value informs us on the nature of the segment. We can assume that bit 0 is set if the segment is 32 bits and unset if in 16 bits |
 | 5*8 bits   | *Unknown* |
 | 8 bits     | Size in bytes of the segment name that will come after. The size is the exact size, there is no null character  |
 | 8n bits    | The name of the semgent in ASCII (with n = the 8 bits value found above) |
