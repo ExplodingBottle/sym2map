@@ -51,7 +51,7 @@ bool SymbolFile::ParseSymbolFile() {
 	symFile.seekg(0, ios::beg);
 
 	READ_DATA(symbolFileSize, uint16_t);
-	READ_DATA(mapFlags, uint8_t);
+	READ_DATA(segmentZeroFlags, uint8_t);
 	symFile.seekg(1, ios::cur); // reserved
 	READ_DATA(entrySegmentNumber, uint16_t);
 	READ_DATA(symbolsInHeaderNumber, uint16_t);
@@ -91,7 +91,7 @@ bool SymbolFile::ParseSymbolFile() {
 	SegmentObject segmentZero = SegmentObject();
 	for (int symbolNumber = 0; symbolNumber < symbolsInHeaderNumber; symbolNumber++) {
 		uint32_t symbolAddress;
-		if (mapFlags & 1) {
+		if (segmentZeroFlags & 1) {
 			READ_DATA(addr, uint32_t);
 			symbolAddress = addr;
 		}
